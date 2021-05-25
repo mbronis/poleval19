@@ -3,7 +3,7 @@ import pickle
 import pandas as pd
 import numpy as np
 
-from typing import List, Tuple, Dict, Union, Sequence, Any
+from typing import List, Tuple, Dict, Sequence, Any
 
 from IPython.display import display
 from sklearn.metrics import f1_score
@@ -15,6 +15,8 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.svm import LinearSVC
 from sklearn.linear_model import RidgeClassifier
 from sklearn.ensemble import RandomForestClassifier
+
+from src.utils import Config, do_nothing
 
 
 class Classifier:
@@ -37,9 +39,11 @@ class Classifier:
     tag = np.int64
     Score = Tuple[float, float]
 
-    DEFAULT_PARAMS = {'vect__tokenizer': lambda x: x, 'vect__preprocessor': None, 'vect__lowercase': False}
+    DEFAULT_PARAMS = {'vect__tokenizer': do_nothing, 'vect__preprocessor': None, 'vect__lowercase': False}
 
     def __init__(self, params: Dict[str, Any] = {}) -> None:
+        self.save_path = None
+        self.model_name = None
         self.pipeline = Pipeline(
             [
                 ('vect', CountVectorizer()),
@@ -109,31 +113,42 @@ class Classifier:
 
         return tags_oof, score_train, score_oof
 
-    def save_model(self, path: str) -> None:
+    def save_model(self) -> None:
+        path = self.save_path + self.model_name + '.pkl'
         with open(path, 'wb') as f:
             pickle.dump((self.pipeline, self.params), f)
 
-    def load_model(self, path: str) -> None:
+    def load_model(self) -> None:
+        path = self.save_path + self.model_name + '.pkl'
         with open(path, 'rb') as f:
             self.pipeline, self.params = pickle.load(f)
 
 
 class SVM(Classifier):
-    def __init__(self, params: Dict[str, Any] = {}) -> None:
+    def __init__(self, params: Dict[str, Any] = {}, model_name: str = 'default_svm') -> None:
         super().__init__(params)
         self.pipeline.steps.append(('clf', LinearSVC()))
         self.pipeline.set_params(**params)
 
+        self.save_path = Config()['SVM']['model_path']
+        self.model_name = model_name
+
 
 class Ridge(Classifier):
-    def __init__(self, params: Dict[str, Any] = {}) -> None:
+    def __init__(self, params: Dict[str, Any] = {}, model_name: str = 'default_ridge') -> None:
         super().__init__(params)
         self.pipeline.steps.append(('clf', RidgeClassifier()))
         self.pipeline.set_params(**params)
 
+        self.save_path = Config()['RIDGE']['model_path']
+        self.model_name = model_name
+
 
 class RF(Classifier):
-    def __init__(self, params: Dict[str, Any] = {}) -> None:
+    def __init__(self, params: Dict[str, Any] = {}, model_name: str = 'default_rf') -> None:
         super().__init__(params)
         self.pipeline.steps.append(('clf', RandomForestClassifier()))
         self.pipeline.set_params(**params)
+
+        self.save_path = Config()['RF']['model_path']
+        self.model_name = model_name
