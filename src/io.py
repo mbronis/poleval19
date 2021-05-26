@@ -7,8 +7,8 @@ import itertools
 import pandas as pd
 import numpy as np
 
-from typing import List
 from src.utils import Logger
+from src.data_model import Tweet, Token, Tokens
 
 
 class DataReader:
@@ -128,7 +128,7 @@ class DataReader:
             return df
 
     @staticmethod
-    def _drop_adjacent_equals(word: str) -> str:
+    def _drop_adjacent_equals(tok: Token) -> Token:
         """
         Remove adjacent duplicate characters.
 
@@ -140,10 +140,10 @@ class DataReader:
         >>> _drop_adjacent_equals('lekkie pióórko')
         'lekie piórko'
         """
-        return ''.join(c[0] for c in itertools.groupby(word))
+        return ''.join(c[0] for c in itertools.groupby(tok))
 
     @staticmethod
-    def _collapse_exploded(word: str, separators: str = ' .-_') -> str:
+    def _collapse_exploded(tok: Token, separators: str = ' .-_') -> Token:
         """
         Collapse word expanded with ``separators``.
 
@@ -152,21 +152,22 @@ class DataReader:
         >>> _collapse_exploded('jesteś b r z y d k i')
         'jesteś brzydki'
         """
-        if len(word) < 5:
-            return word
+        if len(tok) < 5:
+            return tok
 
         remove = []
-        for i, l in enumerate(word[2:-1]):
+        for i, l in enumerate(tok[2:-1]):
             if l in separators:
-                if (word[i - 2] in separators) & (word[i + 2] in separators):
-                    if (word[i - 1].isalpha()) & (word[i + 1].isalpha()):
+                if (tok[i - 2] in separators) & (tok[i + 2] in separators):
+                    if (tok[i - 1].isalpha()) & (tok[i + 1].isalpha()):
                         remove.append(i)
                         remove.append(i + 2)
 
-        return ''.join([l for i, l in enumerate(word) if i not in remove])
+        return ''.join([l for i, l in enumerate(tok) if i not in remove])
+
 
     @staticmethod
-    def _latinize_diacritics(word: str) -> str:
+    def _latinize_diacritics(tok: Token) -> Token:
         """
         Convert polish diacritics to latin letters.
 
@@ -178,9 +179,9 @@ class DataReader:
         letters_diac = 'ąćęłńóśżźĄĆĘŁŃÓŚŻŹ'
         letters_latin = 'acelnoszzACELNOSZZ'
         table = str.maketrans(letters_diac, letters_latin)
-        return word.translate(table)
+        return tok.translate(table)
 
-    def _tokenize_tweet(self, tweet: str) -> List[str]:
+    def _tokenize_tweet(self, tweet: Tweet) -> Tokens:
         """Return list of cleared tokens with length > 1."""
         tokens = [tok.lemma_ for tok in self._nlp(tweet)]
         tokens = [DataReader._latinize_diacritics(tok) for tok in tokens]

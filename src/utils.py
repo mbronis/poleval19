@@ -1,7 +1,6 @@
 import logging
-import numpy as np
 
-from typing import List, Tuple, Any
+from typing import Any
 from configparser import ConfigParser
 
 

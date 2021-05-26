@@ -6,16 +6,15 @@ from fastapi import FastAPI
 
 from src.models import SVM
 
-from typing import List, Sequence
+from typing import Sequence
+from src.data_model import Tokens, Tag
 
 
 app = FastAPI()
-tokens = List[str]
-tag = int
 
 
-@app.post("/predict", response_model=Sequence[tag])
-def predict(tweet: Sequence[tokens]):
+@app.post("/predict", response_model=Sequence[Tag])
+def predict(tweet: Sequence[Tokens]):
     classifier = SVM()
     classifier.load_model()
 

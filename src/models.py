@@ -2,10 +2,13 @@ import pickle
 
 import pandas as pd
 import numpy as np
+from IPython.display import display
 
 from typing import List, Tuple, Dict, Sequence, Any
 
-from IPython.display import display
+from src.data_model import Tokens, Tag, Score
+from src.utils import Config, do_nothing
+
 from sklearn.metrics import f1_score
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import StratifiedKFold
@@ -15,8 +18,6 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.svm import LinearSVC
 from sklearn.linear_model import RidgeClassifier
 from sklearn.ensemble import RandomForestClassifier
-
-from src.utils import Config, do_nothing
 
 
 class Classifier:
@@ -35,9 +36,7 @@ class Classifier:
         Parameters for each pipeline step
 
     """
-    tokens = List[str]
     tag = np.int64
-    Score = Tuple[float, float]
 
     DEFAULT_PARAMS = {'vect__tokenizer': do_nothing, 'vect__preprocessor': None, 'vect__lowercase': False}
 
@@ -53,12 +52,12 @@ class Classifier:
         self.params = params
 
     @staticmethod
-    def score(y_true: Sequence[tag], y_pred: Sequence[tag]) -> Score:
+    def score(y_true: Sequence[Tag], y_pred: Sequence[Tag]) -> Score:
         """Return ``(f-micro, f-macro)``."""
         return f1_score(y_true, y_pred, average='micro'), f1_score(y_true, y_pred, average='macro')
 
     @staticmethod
-    def conf_matrix(y_true: Sequence[tag], y_pred: Sequence[tag]) -> pd.DataFrame:
+    def conf_matrix(y_true: Sequence[Tag], y_pred: Sequence[Tag]) -> pd.DataFrame:
         """Return multiclass confusion matrix"""
 
         df_raw = pd.DataFrame(zip(y_true, y_pred), columns=['act', 'pred'])
@@ -67,10 +66,10 @@ class Classifier:
 
         return conf_matrix
 
-    def make_tags(self, X: Sequence[tokens]) -> Sequence[tag]:
+    def make_tags(self, X: Sequence[Tokens]) -> Sequence[Tag]:
         return self.pipeline.predict(X)
 
-    def train(self, X_train: Sequence[tokens], y_train: Sequence[tag]) -> Tuple[Sequence[tag], Score]:
+    def train(self, X_train: Sequence[Tokens], y_train: Sequence[Tag]) -> Tuple[Sequence[Tag], Score]:
         """Train classifier, return train preds and score."""
         self.pipeline.fit(X_train, y_train)
 
@@ -81,8 +80,8 @@ class Classifier:
 
         return pred_tags, pred_scores
 
-    def score_cv(self, X: Sequence[tokens], y: Sequence[tag],
-                 folds: int = 5, seed: int = 42) -> Tuple[Sequence[tag], Score, Score]:
+    def score_cv(self, X: Sequence[Tokens], y: Sequence[Tag],
+                 folds: int = 5, seed: int = 42) -> Tuple[Sequence[Tag], Score, Score]:
         """Return oof preds and ``(train, oof)`` scores."""
 
         kfold = StratifiedKFold(n_splits=folds, shuffle=True, random_state=seed)
