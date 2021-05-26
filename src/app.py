@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from src.models import SVM
 
 from typing import Sequence
-from src.data_model import Tokens, Tag
+from src.data_types import Tokens, Tag
 
 
 app = FastAPI()

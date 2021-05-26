@@ -4,9 +4,9 @@ import pandas as pd
 import numpy as np
 from IPython.display import display
 
-from typing import List, Tuple, Dict, Sequence, Any
+from typing import Tuple, Dict, Sequence, Any
 
-from src.data_model import Tokens, Tag, Score
+from src.data_types import Tokens, Tag, Score
 from src.utils import Config, do_nothing
 
 from sklearn.metrics import f1_score
