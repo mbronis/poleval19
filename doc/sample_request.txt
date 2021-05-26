@@ -1,1 +1,3 @@
 [["ty", "taki", "owaki"], ["ty", "mily", "panie"]]
+
+'@anonymized_account Tej szmaty się nie komentuje\n'

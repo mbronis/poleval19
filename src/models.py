@@ -4,10 +4,11 @@ import pandas as pd
 import numpy as np
 from IPython.display import display
 
-from typing import Tuple, Dict, Sequence, Any
+from typing import List, Tuple, Dict, Sequence, Any
 
-from src.data_types import Tokens, Tag, Score
+from src.data_types import Tweet, Tokens, Tag, Score
 from src.utils import Config, do_nothing
+from src.preproc import Preprocessor
 
 from sklearn.metrics import f1_score
 from sklearn.pipeline import Pipeline
@@ -32,24 +33,23 @@ class Classifier:
     pipeline : sklearn.Pipeline
         Pipeline defining data transformations and final classifier.
 
-    params : Dict[str, Any]
+    pipe_params : Dict[str, Any]
         Parameters for each pipeline step
 
     """
-    tag = np.int64
-
     DEFAULT_PARAMS = {'vect__tokenizer': do_nothing, 'vect__preprocessor': None, 'vect__lowercase': False}
 
-    def __init__(self, params: Dict[str, Any] = {}) -> None:
+    def __init__(self, pipe_params: Dict[str, Any] = {}) -> None:
         self.save_path = None
         self.model_name = None
+        self.preprocessor = Preprocessor()
         self.pipeline = Pipeline(
             [
                 ('vect', CountVectorizer()),
                 ('tfidf', TfidfTransformer()),
             ])
         self.pipeline.set_params(**Classifier.DEFAULT_PARAMS)
-        self.params = params
+        self.pipe_params = pipe_params
 
     @staticmethod
     def score(y_true: Sequence[Tag], y_pred: Sequence[Tag]) -> Score:
@@ -66,15 +66,25 @@ class Classifier:
 
         return conf_matrix
 
-    def make_tags(self, X: Sequence[Tokens]) -> Sequence[Tag]:
-        return self.pipeline.predict(X)
+    def tag_tokens(self, tokens: Sequence[Tokens]) -> List[Tag]:
+        """Tag preprocessed tweets"""
 
-    def train(self, X_train: Sequence[Tokens], y_train: Sequence[Tag]) -> Tuple[Sequence[Tag], Score]:
+        tags = [tag for tag in self.pipeline.predict(tokens)]
+
+        return tags
+
+    def tag_tweet(self, tweet: Tweet) -> Tag:
+        tokens: Tokens = self.preprocessor.transform_tweet(tweet)
+        tag = self.pipeline.predict([tokens])[0]
+
+        return tag
+
+    def train(self, tokens: Sequence[Tokens], tags: Sequence[Tag]) -> Tuple[Sequence[Tag], Score]:
         """Train classifier, return train preds and score."""
-        self.pipeline.fit(X_train, y_train)
+        self.pipeline.fit(tokens, tags)
 
-        pred_tags = self.make_tags(X_train)
-        pred_scores = self.score(y_train, pred_tags)
+        pred_tags = self.tag_tokens(tokens)
+        pred_scores = self.score(tags, pred_tags)
 
         print(pred_scores)
 
@@ -96,7 +106,7 @@ class Classifier:
             X_test, y_test = X.iloc[test_index], y.iloc[test_index]
 
             tags_in_train, _ = self.train(X_train, y_train)
-            tags_in_oof = self.make_tags(X_test)
+            tags_in_oof = self.tag_tokens(X_test)
 
             tags_train.iloc[train_index] = tags_in_train
             tags_oof.iloc[test_index] = tags_in_oof
@@ -115,39 +125,39 @@ class Classifier:
     def save_model(self) -> None:
         path = self.save_path + self.model_name + '.pkl'
         with open(path, 'wb') as f:
-            pickle.dump((self.pipeline, self.params), f)
+            pickle.dump((self.pipeline, self.pipe_params), f)
 
     def load_model(self) -> None:
         path = self.save_path + self.model_name + '.pkl'
         with open(path, 'rb') as f:
-            self.pipeline, self.params = pickle.load(f)
+            self.pipeline, self.pipe_params = pickle.load(f)
 
 
 class SVM(Classifier):
-    def __init__(self, params: Dict[str, Any] = {}, model_name: str = 'default_svm') -> None:
-        super().__init__(params)
+    def __init__(self, pipe_params: Dict[str, Any] = {}, model_name: str = 'default_svm') -> None:
+        super().__init__(pipe_params)
         self.pipeline.steps.append(('clf', LinearSVC()))
-        self.pipeline.set_params(**params)
+        self.pipeline.set_params(**pipe_params)
 
         self.save_path = Config()['SVM']['model_path']
         self.model_name = model_name
 
 
 class Ridge(Classifier):
-    def __init__(self, params: Dict[str, Any] = {}, model_name: str = 'default_ridge') -> None:
-        super().__init__(params)
+    def __init__(self, pipe_params: Dict[str, Any] = {}, model_name: str = 'default_ridge') -> None:
+        super().__init__(pipe_params)
         self.pipeline.steps.append(('clf', RidgeClassifier()))
-        self.pipeline.set_params(**params)
+        self.pipeline.set_params(**pipe_params)
 
         self.save_path = Config()['RIDGE']['model_path']
         self.model_name = model_name
 
 
 class RF(Classifier):
-    def __init__(self, params: Dict[str, Any] = {}, model_name: str = 'default_rf') -> None:
-        super().__init__(params)
+    def __init__(self, pipe_params: Dict[str, Any] = {}, model_name: str = 'default_rf') -> None:
+        super().__init__(pipe_params)
         self.pipeline.steps.append(('clf', RandomForestClassifier()))
-        self.pipeline.set_params(**params)
+        self.pipeline.set_params(**pipe_params)
 
         self.save_path = Config()['RF']['model_path']
         self.model_name = model_name
