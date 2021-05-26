@@ -132,6 +132,10 @@ class Classifier:
         with open(path, 'rb') as f:
             self.pipeline, self.pipe_params = pickle.load(f)
 
+    def load_spacy_model(self):
+        if self.preprocessor is not None:
+            self.preprocessor.load_spacy_model()
+
 
 class SVM(Classifier):
     def __init__(self, pipe_params: Dict[str, Any] = {}, model_name: str = 'default_svm') -> None:

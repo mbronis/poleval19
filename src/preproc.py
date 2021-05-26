@@ -69,11 +69,15 @@ class Preprocessor(BaseEstimator):
 
         return tweet
 
-    def _tokenizer(self, tweet: Tweet) -> Tokens:
+    def load_spacy_model(self) -> None:
         """Tokenize tweet"""
         if self._nlp is None:
             self._logger.log('loading spacy model')
             self._nlp = spacy.load('pl_spacy_model')
+
+    def _tokenizer(self, tweet: Tweet) -> Tokens:
+        """Tokenize tweet"""
+        self.load_spacy_model()
         tokens = [tok.lemma_ for tok in self._nlp(tweet)]
 
         return tokens
