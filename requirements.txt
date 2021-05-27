@@ -8,3 +8,4 @@ spacy==2.2.4
 pyresparser==1.0.6
 fastapi==0.65.1
 uvicorn==0.13.4
+notebook==6.4.0

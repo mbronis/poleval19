@@ -11,3 +11,17 @@ Test set ([here](http://2019.poleval.pl/task6/task6_test.zip)) consist of 1.000 
 109	(10.9%) `hate-speach` labels.
 
 For evaluation `microF` was chosen as the primary metric and `macroF` as a secondary one.
+
+## App with tweet tagging endpoint
+Chosen model is served with ``Uvicorn`` based api that can take incoming tweet and respond with predicted tag.  
+
+You can set up app with: ``uvicorn src.app:app --port 8100 --host 0.0.0.0 --reload``
+
+## Docker
+The app can be deployed as ``Docker`` container.  
+
+In order to **build** an image run: ``docker build -t poleval19:base .``  
+Now you can **run** dockerized tagging app with:  ``docker run -p 8100:8100 poleval19:base``
+
+
+
