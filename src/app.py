@@ -1,13 +1,9 @@
-import os
-import pickle
-import numpy as np
+from typing import Sequence
+from src.data_types import Tweet, Tokens, Tag
 
 from fastapi import FastAPI
 
 from src.models import SVM
-
-from typing import Sequence
-from src.data_types import Tweet, Tokens, Tag
 
 
 app = FastAPI()

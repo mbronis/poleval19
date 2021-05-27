@@ -16,6 +16,7 @@ from sklearn.model_selection import StratifiedKFold
 
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 
+from sklearn.base import BaseEstimator
 from sklearn.svm import LinearSVC
 from sklearn.linear_model import RidgeClassifier
 from sklearn.ensemble import RandomForestClassifier
@@ -135,6 +136,24 @@ class Classifier:
     def load_spacy_model(self):
         if self.preprocessor is not None:
             self.preprocessor.load_spacy_model()
+
+
+class FlatPredictor(BaseEstimator):
+    def fit(self, X, y):
+        return self
+
+    def predict(self, X, y=None):
+        return [0 for _ in X]
+
+
+class Baseline(Classifier):
+    def __init__(self, pipe_params: Dict[str, Any] = {}, model_name: str = 'baseline') -> None:
+        super().__init__(pipe_params)
+        self.pipeline.steps.append(('clf', FlatPredictor()))
+        self.pipeline.set_params(**pipe_params)
+
+        self.save_path = Config()['Baseline']['model_path']
+        self.model_name = model_name
 
 
 class SVM(Classifier):
