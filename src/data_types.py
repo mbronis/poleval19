@@ -1,4 +1,4 @@
-
+from pydantic import BaseModel
 from typing import Tuple, Sequence
 
 Tweet = str
@@ -9,6 +9,10 @@ Tag = int
 Tags = Sequence[Tag]
 
 Score = Tuple[float, float]
+
+
+class TweetRequest(BaseModel):
+    text: Tweet
 
 
 class TaggedTweetResponse:

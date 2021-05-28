@@ -1,5 +1,5 @@
 from typing import Sequence
-from src.data_types import Tweet, Tokens, Tag
+from src.data_types import TweetRequest, Tokens, Tag
 
 from fastapi import FastAPI
 
@@ -21,7 +21,8 @@ def predict(tokens: Sequence[Tokens]):
 
 
 @app.post("/tag_tweet", response_model=Tag)
-def predict(tweet: Tweet):
-    response = classifier.tag_tweet(tweet)
+def predict(tweet: TweetRequest):
+    text = tweet.text
+    response = classifier.tag_tweet(text)
 
     return response
