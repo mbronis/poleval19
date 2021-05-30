@@ -12,11 +12,11 @@ COPY language_models /app/language_models
 
 RUN python3 -m pip install /app/language_models/pl_spacy_model-0.1.0.tar.gz
 
-COPY src /app/src
-
 COPY models /app/models
 
 COPY config.ini /app/
+
+COPY src /app/src
 
 EXPOSE 8100
 

@@ -38,7 +38,11 @@ The app can be deployed as ``Docker`` container.
 In order to **build** an image run: ``docker build -t poleval19:base .``  
 Now you can **run** dockerized tagging app with:  ``docker run -p 8100:8100 poleval19:base``
 
-Building a docker image requires `pl-spacy-model` in `/language_models` folder. The file can be downloaded from [here](http://zil.ipipan.waw.pl/SpacyPL?action=AttachFile&do=get&target=pl_spacy_model-0.1.0.tar.gz)
+Building a docker image requires `pl-spacy-model` in `/language_models` folder. The file can be downloaded from [here](http://zil.ipipan.waw.pl/SpacyPL?action=AttachFile&do=get&target=pl_spacy_model-0.1.0.tar.gz)  
+
+
+![](./doc/docker_image.png)
+
 
 ## Unit tests
 Suite of unit test is provided. Those can be used in `CI/CD` pipeline for automatic testing our app.
