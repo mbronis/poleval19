@@ -50,7 +50,7 @@ Right now only `preproc` module is covered.
 
 ## Load tests
 Dockerized app performance will be tested with `locust` package.  
-I will simulate load coming from 100 simultaneous user, each making a request once per 3 seconds.   
+I will simulate load coming from 10 simultaneous user, making 3.5 RPS on average.   
 Each request will be a random tweet selected from sample of train set.  
 
 
