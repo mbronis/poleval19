@@ -23,6 +23,15 @@ Chosen model is served with ``Uvicorn`` based api that takes incoming tweet and 
 
 You can set up app locally with: ``uvicorn src.app:app --port 8100 --host 0.0.0.0 --reload``
 
+The app has two endpoints:
+* `/tag_tokens` that takes series of tokens and returns predicted tags
+* `/tag_tweet` that tags tweet provided in form of json:
+```
+{
+  "text": "tweet"
+}
+```
+
 ## Docker
 The app can be deployed as ``Docker`` container.  
 
