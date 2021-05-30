@@ -1,25 +1,24 @@
 import pickle
 
-import pandas as pd
 import numpy as np
-from IPython.display import display
 
 from typing import List, Tuple, Dict, Sequence, Any
 
 from src.data_types import Tweet, Tokens, Tag, Score
 from src.utils import Config, do_nothing
 from src.preproc import Preprocessor
+from src.model_utils import score
 
-from sklearn.metrics import f1_score
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import StratifiedKFold
-
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 
 from sklearn.base import BaseEstimator
 from sklearn.svm import LinearSVC
 from sklearn.linear_model import RidgeClassifier
 from sklearn.ensemble import RandomForestClassifier
+
+from lightgbm import LGBMClassifier
 
 
 class Classifier:
@@ -52,21 +51,6 @@ class Classifier:
         self.pipeline.set_params(**Classifier.DEFAULT_PARAMS)
         self.pipe_params = pipe_params
 
-    @staticmethod
-    def score(y_true: Sequence[Tag], y_pred: Sequence[Tag]) -> Score:
-        """Return ``(f-micro, f-macro)``."""
-        return f1_score(y_true, y_pred, average='micro'), f1_score(y_true, y_pred, average='macro')
-
-    @staticmethod
-    def conf_matrix(y_true: Sequence[Tag], y_pred: Sequence[Tag]) -> pd.DataFrame:
-        """Return multiclass confusion matrix"""
-
-        df_raw = pd.DataFrame(zip(y_true, y_pred), columns=['act', 'pred'])
-        df_gr = df_raw.groupby(['act', 'pred']).size().reset_index().rename({0: 'count'}, axis=1)
-        conf_matrix = df_gr.pivot(index='act', columns='pred', values='count').fillna(0)
-
-        return conf_matrix
-
     def tag_tokens(self, tokens: Sequence[Tokens]) -> List[Tag]:
         """Tag preprocessed tweets"""
 
@@ -85,9 +69,7 @@ class Classifier:
         self.pipeline.fit(tokens, tags)
 
         pred_tags = self.tag_tokens(tokens)
-        pred_scores = self.score(tags, pred_tags)
-
-        print(pred_scores)
+        pred_scores = score(tags, pred_tags)
 
         return pred_tags, pred_scores
 
@@ -115,11 +97,8 @@ class Classifier:
         tags_train = tags_train.astype(np.int64)
         tags_oof = tags_oof.astype(np.int64)
 
-        score_train = self.score(y, tags_train)
-        score_oof = self.score(y, tags_oof)
-
-        print(f"train: {score_train}, oof: {score_oof}")
-        display(self.conf_matrix(y, tags_oof))
+        score_train = score(y, tags_train)
+        score_oof = score(y, tags_oof)
 
         return tags_oof, score_train, score_oof
 
@@ -183,4 +162,14 @@ class RF(Classifier):
         self.pipeline.set_params(**pipe_params)
 
         self.save_path = Config()['RF']['model_path']
+        self.model_name = model_name
+
+
+class LGBM(Classifier):
+    def __init__(self, pipe_params: Dict[str, Any] = {}, model_name: str = 'default_gbm') -> None:
+        super().__init__(pipe_params)
+        self.pipeline.steps.append(('clf', LGBMClassifier()))
+        self.pipeline.set_params(**pipe_params)
+
+        self.save_path = Config()['LGBM']['model_path']
         self.model_name = model_name

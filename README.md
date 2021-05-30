@@ -1,4 +1,4 @@
-# Submission for [PolEval 2019](http://2019.poleval.pl/) task 6-2.
+# Submission for [PolEval 2019](http://2019.poleval.pl/) task 6-2
 
 ## Task info
 Classify tweets into three categories:
@@ -12,16 +12,31 @@ Test set ([here](http://2019.poleval.pl/task6/task6_test.zip)) consist of 1.000 
 
 For evaluation `microF` was chosen as the primary metric and `macroF` as a secondary one.
 
-## App with tweet tagging endpoint
-Chosen model is served with ``Uvicorn`` based api that can take incoming tweet and respond with predicted tag.  
+## Models
+Proposition of problem solution is based on `bag-of-words` along with a range of classification algorithms (`svm`, `rigde`, `rf`, `gbm`).
+Details of building and testing the models can be find in the `jupyter notebook`.  
 
-You can set up app with: ``uvicorn src.app:app --port 8100 --host 0.0.0.0 --reload``
+For deployment blend of `RF` and `Ridge` is used. Chosen blend scores f1-macro: 0.874 and f1-micro: 0.4047.
+
+## App with tweet tagging endpoint
+Chosen model is served with ``Uvicorn`` based api that takes incoming tweet and responds with predicted tag.  
+
+You can set up app locally with: ``uvicorn src.app:app --port 8100 --host 0.0.0.0 --reload``
 
 ## Docker
 The app can be deployed as ``Docker`` container.  
 
 In order to **build** an image run: ``docker build -t poleval19:base .``  
 Now you can **run** dockerized tagging app with:  ``docker run -p 8100:8100 poleval19:base``
+
+## Unit tests
+Suite of unit test is provided. Those can be used in `CI/CD` pipeline for automatic testing our app.
+Right now only `preproc` module is covered. 
+
+## Load tests
+Dockerized app performance will be tested with `locust` package.  
+I will simulate load coming from 100 simultaneous user, each making a request once per 3 seconds.   
+Each request will be a random tweet selected from sample of train set.  
 
 
 

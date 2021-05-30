@@ -10,3 +10,6 @@ fastapi==0.65.1
 uvicorn==0.13.4
 notebook==6.4.0
 locust==1.5.3
+lightgbm==3.2.1
+hyperopt==0.2.5
+flatten_dict== 0.3.0
