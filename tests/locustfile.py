@@ -17,6 +17,6 @@ class TagTweet(TaskSet):
 
 class TagTweetLoadTest(HttpUser):
     tasks = [TagTweet]
-    host = 'http://0.0.0.0:8001'
+    host = 'http://0.0.0.0:8100'
     stop_timeout = 20
     wait_time = between(1, 5)
